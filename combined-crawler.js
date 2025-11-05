@@ -13,7 +13,11 @@ export async function crawlCombined(limit = 10, topic = null) {
     // Run both crawlers in parallel
     const [productHuntResults, appSumoResults] = await Promise.allSettled([
       crawlProductHunt(limit, topic),
-      crawlAppSumo(limit, topic),
+      (async () => {
+        const result = await crawlAppSumo([topic], limit);
+        // ✅ Only return the products array (ignore metadata)
+        return result.products || [];
+      })(),
     ]);
 
     // Handle partial failures gracefully
