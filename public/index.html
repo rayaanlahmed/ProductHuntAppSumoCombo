@@ -1,551 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Hunt Crawler</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #333;
-        }
-
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .category-tag {
-            background: #f0f0f0;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            border: 2px solid transparent;
-        }
-
-        .category-tag:hover {
-            background: #e0e0e0;
-        }
-
-        .category-tag.selected {
-            background: #667eea;
-            color: white;
-            border-color: #5568d3;
-        }
-
-        input[type="number"], select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-
-        input[type="number"]:focus, select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .btn {
-            background: #667eea;
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 6px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.3s;
-        }
-
-        .btn:hover {
-            background: #5568d3;
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .loading.active {
-            display: block;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .results {
-            display: none;
-        }
-
-        .results.active {
-            display: block;
-        }
-
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .result-count {
-            font-size: 1.3rem;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .download-btn {
-            background: #28a745;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .download-btn:hover {
-            background: #218838;
-        }
-
-        .product-card {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .product-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .product-title {
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .product-url {
-            color: #667eea;
-            text-decoration: none;
-            font-size: 0.9rem;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-
-        .product-url:hover {
-            text-decoration: underline;
-        }
-
-        .product-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin: 15px 0;
-            font-size: 0.95rem;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .meta-item strong {
-            color: #667eea;
-        }
-
-        .product-categories {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 10px 0;
-        }
-
-        .category-badge {
-            background: #667eea;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-        }
-
-        .product-description {
-            color: #666;
-            line-height: 1.6;
-            margin-top: 10px;
-        }
-
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            border-left: 4px solid #f5c6cb;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🚀 Product Hunt + 💰 AppSumo Crawler</title>
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background: linear-gradient(to bottom right, #6a4bf4, #b16cff);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    h1 {
+      margin-top: 40px;
+      font-size: 2rem;
+    }
+    #platforms {
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+    #topics-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      margin: 20px;
+    }
+    .topic-btn {
+      background: #fff;
+      color: #6a4bf4;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .topic-btn:hover {
+      background: #e4d9ff;
+    }
+    #results {
+      max-width: 900px;
+      margin: 30px auto;
+      background: #fff;
+      color: #222;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: left;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    .result-card {
+      border-bottom: 1px solid #eee;
+      padding: 12px 0;
+    }
+    .result-card:last-child {
+      border-bottom: none;
+    }
+    .result-card h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #4b3ba6;
+    }
+    .source-tag {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #888;
+    }
+    a {
+      color: #6a4bf4;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 Product Hunt Crawler</h1>
-            <p>Discover trending startups and AI tools by topic</p>
-        </div>
-<div class="card">
-  <form id="crawlForm">
-    <div class="form-group">
-  <label>Select Topic:</label>
-  <div class="category-grid" id="categoryGrid">
-    <div class="category-tag" data-category="artificial-intelligence">Artificial Intelligence</div>
-    <div class="category-tag" data-category="developer-tools">Developer Tools</div>
-    <div class="category-tag" data-category="design-tools">Design Tools</div>
-    <div class="category-tag" data-category="marketing">Marketing</div>
-    <div class="category-tag" data-category="productivity">Productivity</div>
-    <div class="category-tag" data-category="finance">Finance</div>
-    <div class="category-tag" data-category="education">Education</div>
-    <div class="category-tag" data-category="health-and-fitness">Health & Fitness</div>
-    <div class="category-tag" data-category="web3">Web3</div>
-    <div class="category-tag" data-category="startups">Startups</div>
-    <div class="category-tag" data-category="communication-tools">Customer Communication</div>
-    <div class="category-tag" data-category="wearables">Wearables</div>
-  </div>
-</div>
+  <h1>🚀 Product Hunt + 💰 AppSumo Crawler</h1>
+  <div id="platforms">Discover trending startups & lifetime deals by topic</div>
 
+  <div id="topics-container"></div>
 
+  <div id="results">Click a topic to start crawling...</div>
 
-                <div class="form-group"> 
-                    <label for="maxPages">Maximum Products to Scrape:</label>
-                    <input type="number" id="maxPages" name="maxPages" value="30" min="1" max="100">
-                </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // Combined topics from both Product Hunt & AppSumo
+      const topics = [
+        "Artificial Intelligence", "Developer Tools", "Design Tools", "Marketing",
+        "Productivity", "Finance", "Education", "Health & Fitness",
+        "Web3", "Startups", "Customer Communication", "Wearables",
+        "Operations", "Marketing & Sales", "Build it Yourself", "Media Tools",
+        "Development & IT", "Customer Experience"
+      ];
 
-                <div class="form-group">
-                    <label for="sortBy">Sort By:</label>
-                    <select id="sortBy" name="sortBy">
-                        <option value="">Default</option>
-                        <option value="recommended">Recommended</option>
-                        <option value="rating">Highest Rating</option>
-                        <option value="latest">Latest Deals</option>
-                        <option value="review_count">Most Reviews</option>
-                        <option value="popularity">Most Popular</option>
-                        <option value="newest">Newest First</option>
-                        <option value="price_low">Price: Low to High</option>
-                        <option value="price_high">Price: High to Low</option>
-                    </select>
-                </div>
+      // Remove duplicates (e.g. Marketing appears in both)
+      const uniqueTopics = [...new Set(topics.map(t => t.trim()))];
 
-                <div class="form-group">
-                    <label for="crawlMode">Crawl Mode:</label>
-                    <select id="crawlMode" name="crawlMode">
-                        <option value="fast">Fast Mode (Main content only - faster, may miss some data)</option>
-                        <option value="complete">Complete Mode (All content - slower, more accurate)</option>
-                    </select>
-                    <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">💡 Tip: Start with Fast mode, then recrawl selected products in Complete mode if needed</p>
-                </div>
+      const topicsContainer = document.getElementById("topics-container");
+      const resultsContainer = document.getElementById("results");
 
-                <button type="submit" class="btn" id="crawlBtn">Start Crawling</button>
-            </form>
-        </div>
+      // Display topic buttons
+      uniqueTopics.forEach(topic => {
+        const btn = document.createElement("button");
+        btn.textContent = topic;
+        btn.className = "topic-btn";
+        btn.onclick = () => fetchResults(topic);
+        topicsContainer.appendChild(btn);
+      });
 
-        <div class="loading" id="loading">
-            <div class="card">
-                <div class="spinner"></div>
-                <p id="loadingText" style="text-align: center; font-size: 1.1rem; color: #666; margin-bottom: 20px;">🚀 Crawling Product Hunt... This may take a few minutes.</p>
-
-
-                <!-- Progress Bar -->
-                <div style="width: 100%; background: #e0e0e0; border-radius: 10px; height: 30px; overflow: hidden; margin-bottom: 15px;">
-                    <div id="progressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); transition: width 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.9rem;">
-                        0%
-                    </div>
-                </div>
-
-                <p id="progressDetails" style="text-align: center; color: #888; font-size: 0.9rem;"></p>
-            </div>
-        </div>
-
-        <div class="results" id="results">
-            <div class="card">
-                <div class="result-header">
-                    <div class="result-count" id="resultCount">Found 0 products</div>
-                    <div>
-                        <button class="download-btn" id="recrawlBtn" style="background: #28a745; margin-right: 10px; display: none;">Recrawl Selected (Complete Mode)</button>
-                        <button class="download-btn" id="restartBtn" style="background: #dc3545; margin-right: 10px;">New Search</button>
-                        <button class="download-btn" id="downloadJsonBtn" style="margin-right: 10px;">Download JSON</button>
-                        <button class="download-btn" id="downloadMdBtn" style="background: #17a2b8;">Download Markdown</button>
-                    </div>
-                </div>
-                <div id="productList"></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    const categoryGrid = document.getElementById('categoryGrid');
-    const crawlForm = document.getElementById('crawlForm');
-    const loading = document.getElementById('loading');
-    const results = document.getElementById('results');
-    const productList = document.getElementById('productList');
-    const resultCount = document.getElementById('resultCount');
-    const downloadJsonBtn = document.getElementById('downloadJsonBtn');
-    const downloadMdBtn = document.getElementById('downloadMdBtn');
-    const restartBtn = document.getElementById('restartBtn');
-    const crawlBtn = document.getElementById('crawlBtn');
-
-    let selectedCategories = [];
-    let currentProducts = [];
-    let rateLimitedProducts = [];
-
-    // ✅ Category selection
-    categoryGrid.addEventListener('click', (e) => {
-        if (e.target.classList.contains('category-tag')) {
-            e.target.classList.toggle('selected');
-            const category = e.target.dataset.category;
-
-            if (selectedCategories.includes(category)) {
-                selectedCategories = selectedCategories.filter(c => c !== category);
-            } else {
-                selectedCategories.push(category);
-            }
-        }
-    });
-
-    // ✅ Crawl form submission
-    crawlForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const maxPages = parseInt(document.getElementById('maxPages').value);
-        const sortBy = document.getElementById('sortBy').value || null;
-        const crawlMode = document.getElementById('crawlMode').value;
-
-        loading.classList.add('active');
-        results.classList.remove('active');
-        crawlBtn.disabled = true;
-
-        currentProducts = [];
-        rateLimitedProducts = [];
-
+      // Fetch results from the backend combined API
+      async function fetchResults(topic) {
+        resultsContainer.innerHTML = `<p>⏳ Crawling <b>${topic}</b> data from Product Hunt + AppSumo...</p>`;
         try {
-            const response = await fetch('/api/crawl', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    categories: selectedCategories,
-                    maxPages: maxPages,
-                    sortBy: sortBy,
-                    crawlMode: crawlMode
-                })
-            });
+          const res = await fetch("/api/combined-crawl", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              categories: [topic.toLowerCase()],
+              maxPages: 10
+            })
+          });
+          const data = await res.json();
+          console.log("✅ Combined results:", data);
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
+          if (!data.success || !data.products?.length) {
+            resultsContainer.innerHTML = `<p>No results found for ${topic} 😕</p>`;
+            return;
+          }
 
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
+          const cards = data.products.map(p => `
+            <div class="result-card">
+              <h3>${p.name || "Untitled Product"}</h3>
+              <p class="source-tag">${p.source === "AppSumo" ? "💰 AppSumo" : "🚀 Product Hunt"}</p>
+              <p>${p.tagline || p.description || "No description available"}</p>
+              ${p.founders ? `<p><b>Founder:</b> ${p.founders}</p>` : ""}
+              ${p.rating ? `<p><b>Rating:</b> ${p.rating}</p>` : ""}
+              <p><b>Launched:</b> ${p.launchDate || "N/A"}</p>
+              <a href="${p.url}" target="_blank">🔗 Visit Product</a>
+            </div>
+          `).join("");
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-
-                for (let i = 0; i < lines.length - 1; i++) {
-                    const line = lines[i];
-                    if (line.startsWith('data: ')) {
-                        const jsonData = JSON.parse(line.slice(6));
-
-                        if (jsonData.type === 'complete') {
-                            currentProducts = jsonData.products;
-                            displayResults(currentProducts);
-                        } else if (jsonData.type === 'error') {
-                            throw new Error(jsonData.error);
-                        }
-                    }
-                }
-                buffer = lines[lines.length - 1];
-            }
-        } catch (error) {
-            productList.innerHTML = `<div class="error">Error: ${error.message}</div>`;
-            results.classList.add('active');
-        } finally {
-            loading.classList.remove('active');
-            crawlBtn.disabled = false;
+          resultsContainer.innerHTML = `
+            <h2>Results for ${topic}</h2>
+            ${cards}
+          `;
+        } catch (err) {
+          console.error(err);
+          resultsContainer.innerHTML = `<p>⚠️ Error fetching ${topic} results</p>`;
         }
+      }
     });
-
-    // ✅ Display results
-    function displayResults(products, rateLimited = []) {
-        resultCount.textContent = `Found ${products.length} product${products.length !== 1 ? 's' : ''}`;
-        let html = '';
-
-        if (rateLimited && rateLimited.length > 0) {
-            html += `
-                <div style="background:#fff3cd;border:2px solid #ffc107;border-radius:8px;padding:20px;margin-bottom:20px;">
-                    <h3 style="margin:0 0 10px 0;color:#856404;">⚠️ ${rateLimited.length} Product(s) Rate Limited</h3>
-                    <ul>${rateLimited.map(item => `<li>${item.name}</li>`).join('')}</ul>
-                </div>`;
-        }
-
-        if (products.length === 0) {
-            html += `<p style="text-align:center;color:#666;padding:20px;">No products found matching your criteria.</p>`;
-        } else {
-            html += products.map(product => `
-                <div class="product-card">
-                    <div class="product-title">${escapeHtml(product.name)}</div>
-                    <a href="${escapeHtml(product.producthunt_url || product.url)}" target="_blank" class="product-url">
-                        ${escapeHtml(product.url || product.producthunt_url)}
-                    </a>
-                    ${product.tagline ? `<div class="product-description"><strong>Tagline:</strong> ${escapeHtml(product.tagline)}</div>` : ''}
-                    ${product.description ? `<div class="product-description"><strong>Description:</strong> ${escapeHtml(product.description)}</div>` : ''}
-                    <div class="product-meta">
-                        ${product.votes ? `<div class="meta-item"><strong>Votes:</strong> ${product.votes}</div>` : ''}
-                        ${product.launchDate ? `<div class="meta-item"><strong>Launched:</strong> ${new Date(product.launchDate).toLocaleDateString()}</div>` : ''}
-                    </div>
-                    ${product.topics ? `
-                        <div class="product-categories">
-                            ${product.topics.split(',').map(cat => `<span class="category-badge">${escapeHtml(cat.trim())}</span>`).join('')}
-                        </div>` : ''}
-                </div>`).join('');
-        }
-
-        productList.innerHTML = html;
-        results.classList.add('active');
-    }
-
-    // ✅ Restart
-    restartBtn.addEventListener('click', () => {
-        results.classList.remove('active');
-        currentProducts = [];
-        selectedCategories = [];
-        document.querySelectorAll('.category-tag.selected').forEach(tag => tag.classList.remove('selected'));
-        document.getElementById('maxPages').value = 30;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    // ✅ Download JSON
-    downloadJsonBtn.addEventListener('click', () => {
-        const dataStr = JSON.stringify(currentProducts, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(dataBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `producthunt_products_${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-        URL.revokeObjectURL(url);
-    });
-
-    // ✅ Download Markdown
-    downloadMdBtn.addEventListener('click', () => {
-        const markdown = generateMarkdown(currentProducts);
-        const dataBlob = new Blob([markdown], { type: 'text/markdown' });
-        const url = URL.createObjectURL(dataBlob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `producthunt_products_${new Date().toISOString().split('T')[0]}.md`;
-        link.click();
-        URL.revokeObjectURL(url);
-    });
-
-    function generateMarkdown(products) {
-        let md = `# Product Hunt Results\n\n`;
-        md += `**Date:** ${new Date().toLocaleDateString()}\n`;
-        md += `**Total Products:** ${products.length}\n\n`;
-        md += `---\n\n`;
-
-        products.forEach((product, index) => {
-            md += `## ${index + 1}. ${product.name}\n\n`;
-            md += `**URL:** [${product.url}](${product.url})\n\n`;
-            if (product.tagline) md += `**Tagline:** ${product.tagline}\n\n`;
-            if (product.description) md += `**Description:** ${product.description}\n\n`;
-        });
-
-        return md + `\n*Generated by Product Hunt Crawler*\n`;
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-</script>
-
+  </script>
 </body>
 </html>
