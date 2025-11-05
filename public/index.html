@@ -3,244 +3,252 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🚀 Product Hunt + 💰 AppSumo Crawler</title>
+  <title>🚀 Product Hunt + AppSumo Crawler</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
+      margin: 0;
       padding: 40px 20px;
+      color: #222;
     }
     .container {
-      max-width: 1000px;
+      max-width: 900px;
       margin: 0 auto;
       background: white;
-      border-radius: 16px;
-      padding: 40px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
     h1 {
       text-align: center;
-      font-size: 2rem;
-      color: #4b3ba6;
-      margin-bottom: 10px;
-    }
-    #subtitle {
-      text-align: center;
-      font-size: 1rem;
-      color: #666;
+      color: white;
       margin-bottom: 25px;
+      font-size: 2.2rem;
     }
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: #333;
-    }
-    select, input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border: 2px solid #e0e0e0;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    select:focus, input:focus { border-color: #667eea; outline: none; }
-    #topics-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
+    .topics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
       margin-bottom: 20px;
     }
     .topic-btn {
-      background: #f3f3f3;
-      color: #333;
+      background: #f0f0f0;
+      border: none;
+      padding: 10px 18px;
       border-radius: 8px;
-      padding: 12px;
       cursor: pointer;
-      text-align: center;
-      font-weight: 600;
-      border: 2px solid transparent;
-      transition: all 0.2s ease;
+      transition: all 0.3s;
+      font-weight: 500;
     }
-    .topic-btn:hover, .topic-btn.selected {
-      background: #667eea;
-      color: #fff;
+    .topic-btn:hover { background: #e0e0e0; }
+    .topic-btn.selected { background: #667eea; color: white; }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
     }
-    .btn {
-      width: 100%;
+    input, select, button {
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    button[type="submit"] {
       background: #667eea;
       color: white;
-      padding: 15px;
-      border: none;
-      border-radius: 8px;
-      font-size: 1.1rem;
       font-weight: 600;
-      cursor: pointer;
+      border: none;
       transition: background 0.3s;
     }
-    .btn:hover { background: #5568d3; }
+    button[type="submit"]:hover { background: #5568d3; }
+
     #loading {
       display: none;
       text-align: center;
-      margin-top: 30px;
+      margin-top: 20px;
     }
     .spinner {
-      border: 4px solid #eee;
-      border-top: 4px solid #667eea;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #667eea;
       border-radius: 50%;
       width: 50px;
       height: 50px;
       animation: spin 1s linear infinite;
       margin: 0 auto 10px;
     }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    #results {
-      margin-top: 30px;
-      background: #fafafa;
-      border-radius: 12px;
-      padding: 20px;
+    @keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
+
+    #progressBar {
+      width: 100%;
+      background: #eee;
+      height: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    #progressFill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg,#667eea,#764ba2);
+      text-align:center;
+      color:white;
+      font-size:0.8rem;
+      line-height:20px;
+      transition: width 0.3s;
     }
     .result-card {
-      border-bottom: 1px solid #e0e0e0;
-      padding: 15px 0;
+      padding:20px 0;
+      border-bottom:1px solid #eee;
     }
-    .result-card:last-child { border-bottom: none; }
-    .result-card h3 { font-size: 1.2rem; color: #4b3ba6; margin-bottom: 5px; }
-    .source-tag { font-weight: bold; color: #888; font-size: 0.9rem; margin-bottom: 5px; }
-    a { color: #667eea; text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    .result-card a { color:#4b3ba6;text-decoration:none; }
+    .result-card a:hover { text-decoration:underline; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🚀 Product Hunt + 💰 AppSumo Crawler</h1>
-    <p id="subtitle">Discover trending startups & lifetime deals by topic</p>
+  <h1>🚀 Product Hunt + 💰 AppSumo Crawler</h1>
 
-    <div id="topics-container"></div>
+  <div class="container">
+    <div class="topics" id="topics-container"></div>
 
     <form id="crawlForm">
-      <label for="maxPages">Maximum Products to Scrape:</label>
-      <input type="number" id="maxPages" value="30" min="1" max="100" />
+      <label>Maximum Products to Scrape:</label>
+      <input type="number" id="maxPages" value="30" min="1" max="100"/>
 
-      <label for="sortBy">Sort By:</label>
+      <label>Sort By:</label>
       <select id="sortBy">
         <option value="">Default</option>
         <option value="latest">Latest</option>
-        <option value="rating">Highest Rating</option>
-        <option value="reviews">Most Reviews</option>
+        <option value="rating">Rating</option>
+        <option value="popularity">Popularity</option>
       </select>
 
-      <label for="crawlMode">Crawl Mode:</label>
+      <label>Crawl Mode:</label>
       <select id="crawlMode">
-        <option value="fast">Fast Mode (Quick, may miss details)</option>
-        <option value="complete">Complete Mode (Slower, more accurate)</option>
+        <option value="fast">Fast Mode – quicker, may miss some data</option>
+        <option value="complete">Complete Mode – slower, more accurate</option>
       </select>
 
-      <p style="font-size: 0.85rem; color: #777; margin-top: -8px; margin-bottom: 15px;">
-        💡 Tip: Start in Fast mode, then recrawl in Complete mode if needed.
-      </p>
-
-      <button type="submit" class="btn">Start Crawling</button>
+      <button type="submit">Start Crawling</button>
     </form>
 
     <div id="loading">
       <div class="spinner"></div>
-      Fetching results...
+      <p id="progressText">Fetching results...</p>
+      <p style="font-size:0.9rem;color:#777;">Estimated time: 20–40 seconds</p>
+      <div id="progressBar"><div id="progressFill">0%</div></div>
     </div>
 
-    <div id="results">Click a topic and start crawling to see combined results.</div>
+    <div id="results"></div>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const topics = [
-        "Artificial Intelligence", "Developer Tools", "Design Tools", "Marketing",
-        "Productivity", "Finance", "Education", "Health & Fitness",
-        "Web3", "Startups", "Customer Communication", "Wearables",
-        "Operations", "Marketing & Sales", "Build it Yourself", "Media Tools",
-        "Development & IT", "Customer Experience"
+    document.addEventListener("DOMContentLoaded",()=>{
+      const topics=[
+        "Artificial Intelligence","Developer Tools","Design Tools","Marketing",
+        "Productivity","Finance","Education","Health & Fitness","Web3","Startups",
+        "Customer Communication","Wearables","Operations","Marketing & Sales",
+        "Build it Yourself","Media Tools","Development & IT","Customer Experience"
       ];
-      const uniqueTopics = [...new Set(topics.map(t => t.trim()))];
+      const topicsContainer=document.getElementById("topics-container");
+      const resultsContainer=document.getElementById("results");
+      const loading=document.getElementById("loading");
+      const progressText=document.getElementById("progressText");
+      const progressFill=document.getElementById("progressFill");
+      const form=document.getElementById("crawlForm");
+      let selectedTopic=null,progressTimer=null,progressPercent=0;
 
-      const topicsContainer = document.getElementById("topics-container");
-      const resultsContainer = document.getElementById("results");
-      const loading = document.getElementById("loading");
-      const form = document.getElementById("crawlForm");
-
-      let selectedTopic = null;
-
-      uniqueTopics.forEach(topic => {
-        const btn = document.createElement("button");
-        btn.textContent = topic;
-        btn.className = "topic-btn";
-        btn.onclick = (e) => {
+      topics.forEach(t=>{
+        const btn=document.createElement("button");
+        btn.textContent=t;
+        btn.className="topic-btn";
+        btn.onclick=(e)=>{
           e.preventDefault();
-          document.querySelectorAll(".topic-btn").forEach(b => b.classList.remove("selected"));
+          document.querySelectorAll(".topic-btn").forEach(b=>b.classList.remove("selected"));
           btn.classList.add("selected");
-          selectedTopic = topic;
+          selectedTopic=t;
         };
         topicsContainer.appendChild(btn);
       });
 
-      form.addEventListener("submit", async (e) => {
+      form.addEventListener("submit",async(e)=>{
         e.preventDefault();
-        if (!selectedTopic) {
-          alert("Please select a topic first!");
-          return;
-        }
+        if(!selectedTopic){alert("Please select a topic first!");return;}
+        const maxPages=parseInt(document.getElementById("maxPages").value);
+        const sortBy=document.getElementById("sortBy").value;
+        const crawlMode=document.getElementById("crawlMode").value;
 
-        const maxPages = parseInt(document.getElementById("maxPages").value);
-        const sortBy = document.getElementById("sortBy").value;
-        const crawlMode = document.getElementById("crawlMode").value;
+        resultsContainer.innerHTML="";
+        loading.style.display="block";
+        progressPercent=0;
+        progressFill.style.width="0%";
+        progressFill.textContent="0%";
+        progressTimer=setInterval(()=>{
+          progressPercent+=Math.random()*10;
+          if(progressPercent>=95)progressPercent=95;
+          progressFill.style.width=Math.floor(progressPercent)+"%";
+          progressFill.textContent=Math.floor(progressPercent)+"%";
+          progressText.textContent=`⚙️ Fetching ${selectedTopic} results... ${Math.floor(progressPercent)}%`;
+        },1500);
 
-        loading.style.display = "block";
-        resultsContainer.innerHTML = "";
-
-        try {
-          const res = await fetch("/api/combined-crawl", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              categories: [selectedTopic.toLowerCase()],
-              maxPages,
-              sortBy,
-              crawlMode
+        try{
+          const res=await fetch("/api/combined-crawl",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+              categories:[selectedTopic.toLowerCase()],
+              maxPages,sortBy,crawlMode
             })
           });
+          const data=await res.json();
+          clearInterval(progressTimer);
+          progressFill.style.width="100%";
+          progressFill.textContent="100%";
+          loading.style.display="none";
 
-          const data = await res.json();
-          loading.style.display = "none";
-
-          if (!data.success || !data.products?.length) {
-            resultsContainer.innerHTML = `<p>No results found for ${selectedTopic} 😕</p>`;
+          if(!data.success||!data.products?.length){
+            resultsContainer.innerHTML=`<p>No results found for ${selectedTopic} 😕</p>`;
             return;
           }
 
-          const cards = data.products.map(p => `
+          const cards=data.products.map(p=>`
             <div class="result-card">
-              <h3>${p.name || "Untitled Product"}</h3>
-              <p class="source-tag">${p.source === "AppSumo" ? "💰 AppSumo" : "🚀 Product Hunt"}</p>
-              <p>${p.tagline || p.description || "No description available"}</p>
-              ${p.founders ? `<p><b>Founder:</b> ${p.founders}</p>` : ""}
-              ${p.rating ? `<p><b>Rating:</b> ${p.rating}</p>` : ""}
-              <p><b>Launched:</b> ${p.launchDate || "N/A"}</p>
-              <a href="${p.url}" target="_blank">🔗 Visit Product</a>
-            </div>
-          `).join("");
+              <h3><a href="${p.url}" target="_blank">${p.name||"Untitled Product"}</a></h3>
+              <p style="font-weight:600;color:${p.source==="AppSumo"?"#DAA520":"#667eea"};">
+                ${p.source==="AppSumo"?"💰 AppSumo":"🚀 Product Hunt"}
+              </p>
+              ${p.tagline?`<p><strong>Tagline:</strong> ${p.tagline}</p>`:""}
+              ${p.description?`<p><strong>Description:</strong> ${p.description}</p>`:""}
+              <div style="display:flex;flex-wrap:wrap;gap:15px;margin-top:10px;">
+                ${p.votes?`<span><strong>Votes:</strong> ${p.votes}</span>`:""}
+                ${p.rating?`<span><strong>Rating:</strong> ${p.rating}</span>`:""}
+                ${p.launchDate?`<span><strong>Launched:</strong> ${new Date(p.launchDate).toLocaleDateString()}</span>`:""}
+              </div>
+              ${p.topics?`
+                <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">
+                  ${p.topics.split(',').map(cat=>`
+                    <span style="background:#667eea;color:white;padding:4px 10px;border-radius:10px;font-size:0.8rem;">
+                      ${cat.trim()}
+                    </span>`).join('')}
+                </div>`:""}
+            </div>`).join("");
 
-          resultsContainer.innerHTML = `
-            <h2>Results for ${selectedTopic}</h2>
-            ${cards}
-          `;
-        } catch (err) {
-          loading.style.display = "none";
-          resultsContainer.innerHTML = `<p>⚠️ Error fetching results.</p>`;
+          resultsContainer.innerHTML=`
+            <h2 style="margin-top:10px;">Results for ${selectedTopic}</h2>
+            <p style="color:#555;font-size:0.9rem;">Total combined results: ${data.products.length}</p>
+            ${cards}`;
+        }catch(err){
+          clearInterval(progressTimer);
+          loading.style.display="none";
+          resultsContainer.innerHTML=`<p>⚠️ Error fetching results. Please try again.</p>`;
         }
       });
     });
   </script>
 </body>
 </html>
+
 
