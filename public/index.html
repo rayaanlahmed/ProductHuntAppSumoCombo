@@ -9,253 +9,251 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
-      padding: 40px 20px;
+      padding: 20px;
       color: #222;
     }
     .container {
-      max-width: 900px;
+      max-width: 1100px;
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px;
       margin: 0 auto;
-      background: white;
-      border-radius: 12px;
-      padding: 30px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
     h1 {
       text-align: center;
-      color: white;
+      color: #fff;
       margin-bottom: 25px;
+    }
+    h1 span {
       font-size: 2.2rem;
     }
-    .topics {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .topic-btn {
-      background: #f0f0f0;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s;
-      font-weight: 500;
-    }
-    .topic-btn:hover { background: #e0e0e0; }
-    .topic-btn.selected { background: #667eea; color: white; }
-
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-    input, select, button {
-      padding: 12px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
+    .sub {
+      text-align: center;
+      color: #e0e0e0;
+      margin-bottom: 35px;
       font-size: 1rem;
     }
-    button[type="submit"] {
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .category-btn {
+      padding: 12px 15px;
+      background: #f1f1f1;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    .category-btn:hover { background: #e0e0e0; }
+    .category-btn.active {
+      background: #667eea;
+      color: #fff;
+    }
+    #startBtn {
+      width: 100%;
+      padding: 16px;
+      font-size: 1.1rem;
       background: #667eea;
       color: white;
-      font-weight: 600;
       border: none;
-      transition: background 0.3s;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
     }
-    button[type="submit"]:hover { background: #5568d3; }
+    #startBtn:hover { background: #5568d3; }
 
-    #loading {
-      display: none;
+    .progress {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 25px;
+      font-size: 1.05rem;
+      color: #555;
     }
     .spinner {
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #667eea;
+      border: 4px solid #eee;
+      border-top: 4px solid #667eea;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
+      width: 45px;
+      height: 45px;
+      margin: 15px auto;
       animation: spin 1s linear infinite;
-      margin: 0 auto 10px;
     }
-    @keyframes spin { 0%{transform:rotate(0)}100%{transform:rotate(360deg)} }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
-    #progressBar {
-      width: 100%;
-      background: #eee;
-      height: 20px;
-      border-radius: 10px;
-      overflow: hidden;
+    .results {
+      margin-top: 40px;
+    }
+    .product-card {
+      padding: 25px 0;
+      border-bottom: 1px solid #e2e2e2;
+    }
+    .product-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+    .product-title a {
+      color: #4b3ba6;
+      text-decoration: none;
+    }
+    .product-title a:hover {
+      text-decoration: underline;
+    }
+    .source {
+      font-weight: 600;
+      margin: 5px 0 12px;
+    }
+    .source.ph { color: #667eea; }
+    .source.as { color: #daa520; }
+    .meta-line {
+      margin: 10px 0;
+      font-size: 0.95rem;
+    }
+    .categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       margin-top: 10px;
     }
-    #progressFill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg,#667eea,#764ba2);
-      text-align:center;
-      color:white;
-      font-size:0.8rem;
-      line-height:20px;
-      transition: width 0.3s;
+    .cat {
+      background: #667eea;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 0.8rem;
     }
-    .result-card {
-      padding:20px 0;
-      border-bottom:1px solid #eee;
-    }
-    .result-card a { color:#4b3ba6;text-decoration:none; }
-    .result-card a:hover { text-decoration:underline; }
-    .badges { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
-    .badge {
-      background:#667eea;
-      color:white;
-      padding:4px 10px;
-      border-radius:10px;
-      font-size:0.8rem;
+    .link-line {
+      margin-top: 5px;
+      word-break: break-all;
     }
   </style>
 </head>
 <body>
-  <h1>🚀 Product Hunt + 💰 AppSumo Crawler</h1>
+  <h1><span>🚀 Product Hunt + 💰 AppSumo Crawler</span></h1>
+  <div class="sub">Discover trending startups & lifetime deals by topic</div>
 
   <div class="container">
-    <div class="topics" id="topics-container"></div>
-
-    <form id="crawlForm">
-      <label>Maximum Products to Scrape:</label>
-      <input type="number" id="maxPages" value="30" min="1" max="100"/>
-
-      <label>Sort By:</label>
-      <select id="sortBy">
-        <option value="">Default</option>
-        <option value="latest">Latest</option>
-        <option value="rating">Rating</option>
-        <option value="popularity">Popularity</option>
-      </select>
-
-      <label>Crawl Mode:</label>
-      <select id="crawlMode">
-        <option value="fast">Fast Mode – quicker, may miss some data</option>
-        <option value="complete">Complete Mode – slower, more accurate</option>
-      </select>
-
-      <button type="submit">Start Crawling</button>
-    </form>
-
-    <div id="loading">
-      <div class="spinner"></div>
-      <p id="progressText">Fetching results...</p>
-      <p style="font-size:0.9rem;color:#777;">Estimated time: 20–40 seconds</p>
-      <div id="progressBar"><div id="progressFill">0%</div></div>
+    <div id="categoryGrid" class="category-grid">
+      <button class="category-btn" data-cat="artificial-intelligence">Artificial Intelligence</button>
+      <button class="category-btn" data-cat="developer-tools">Developer Tools</button>
+      <button class="category-btn" data-cat="design-tools">Design Tools</button>
+      <button class="category-btn" data-cat="marketing">Marketing</button>
+      <button class="category-btn" data-cat="productivity">Productivity</button>
+      <button class="category-btn" data-cat="finance">Finance</button>
+      <button class="category-btn" data-cat="education">Education</button>
+      <button class="category-btn" data-cat="health-and-fitness">Health & Fitness</button>
+      <button class="category-btn" data-cat="web3">Web3</button>
+      <button class="category-btn" data-cat="startups">Startups</button>
+      <button class="category-btn" data-cat="communication-tools">Customer Communication</button>
+      <button class="category-btn" data-cat="wearables">Wearables</button>
+      <button class="category-btn" data-cat="operations">Operations</button>
+      <button class="category-btn" data-cat="marketing-sales">Marketing & Sales</button>
+      <button class="category-btn" data-cat="build-it-yourself">Build it Yourself</button>
+      <button class="category-btn" data-cat="media-tools">Media Tools</button>
+      <button class="category-btn" data-cat="development-it">Development & IT</button>
+      <button class="category-btn" data-cat="customer-experience">Customer Experience</button>
     </div>
 
-    <div id="results"></div>
+    <input type="number" id="maxPages" value="10" min="1" max="50" style="width:100%;padding:12px;border-radius:8px;border:1px solid #ccc;margin:15px 0;" />
+
+    <button id="startBtn">Start Crawling</button>
+    <div id="progress" class="progress" style="display:none;">
+      <div class="spinner"></div>
+      <p id="progressText">Fetching results...</p>
+    </div>
+
+    <div id="results" class="results"></div>
   </div>
 
   <script>
-    document.addEventListener("DOMContentLoaded",()=>{
-      const topics=[
-        "Artificial Intelligence","Developer Tools","Design Tools","Marketing",
-        "Productivity","Finance","Education","Health & Fitness","Web3","Startups",
-        "Customer Communication","Wearables","Operations","Marketing & Sales",
-        "Build it Yourself","Media Tools","Development & IT","Customer Experience"
-      ];
-      const topicsContainer=document.getElementById("topics-container");
-      const resultsContainer=document.getElementById("results");
-      const loading=document.getElementById("loading");
-      const progressText=document.getElementById("progressText");
-      const progressFill=document.getElementById("progressFill");
-      const form=document.getElementById("crawlForm");
-      let selectedTopic=null,progressTimer=null,progressPercent=0;
+    const buttons = document.querySelectorAll(".category-btn");
+    const startBtn = document.getElementById("startBtn");
+    const progress = document.getElementById("progress");
+    const progressText = document.getElementById("progressText");
+    const resultsDiv = document.getElementById("results");
+    let selectedCat = null;
 
-      topics.forEach(t=>{
-        const btn=document.createElement("button");
-        btn.textContent=t;
-        btn.className="topic-btn";
-        btn.onclick=(e)=>{
-          e.preventDefault();
-          document.querySelectorAll(".topic-btn").forEach(b=>b.classList.remove("selected"));
-          btn.classList.add("selected");
-          selectedTopic=t;
-        };
-        topicsContainer.appendChild(btn);
-      });
-
-      form.addEventListener("submit",async(e)=>{
-        e.preventDefault();
-        if(!selectedTopic){alert("Please select a topic first!");return;}
-        const maxPages=parseInt(document.getElementById("maxPages").value);
-        const sortBy=document.getElementById("sortBy").value;
-        const crawlMode=document.getElementById("crawlMode").value;
-
-        resultsContainer.innerHTML="";
-        loading.style.display="block";
-        progressPercent=0;
-        progressFill.style.width="0%";
-        progressFill.textContent="0%";
-        progressTimer=setInterval(()=>{
-          progressPercent+=Math.random()*10;
-          if(progressPercent>=95)progressPercent=95;
-          progressFill.style.width=Math.floor(progressPercent)+"%";
-          progressFill.textContent=Math.floor(progressPercent)+"%";
-          progressText.textContent=`⚙️ Fetching ${selectedTopic} results... ${Math.floor(progressPercent)}%`;
-        },1500);
-
-        try{
-          const res=await fetch("/api/combined-crawl",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({
-              categories:[selectedTopic.toLowerCase()],
-              maxPages,sortBy,crawlMode
-            })
-          });
-          const data=await res.json();
-          clearInterval(progressTimer);
-          progressFill.style.width="100%";
-          progressFill.textContent="100%";
-          loading.style.display="none";
-
-          if(!data.success||!data.products?.length){
-            resultsContainer.innerHTML=`<p>No results found for ${selectedTopic} 😕</p>`;
-            return;
-          }
-
-          const cards=data.products.map(p=>{
-            const isPH=p.source==="Product Hunt";
-            const sourceColor=isPH?"#667eea":"#DAA520";
-            const sourceIcon=isPH?"🚀":"💰";
-            const tagline=p.tagline?`<p><strong>Tagline:</strong> ${p.tagline}</p>`:"";
-            const description=p.description?`<p><strong>Description:</strong> ${p.description}</p>`:"";
-            const founder=p.founder?`<p><strong>Founder:</strong> ${p.founder}</p>`:"";
-            const price=p.price?`<p><strong>Price:</strong> ${p.price}</p>`:"";
-            const rating=p.rating?`<p><strong>Rating:</strong> ${p.rating}</p>`:"";
-            const votes=p.votes?`<p><strong>Votes:</strong> ${p.votes}</p>`:"";
-            const launch=p.launchDate?`<p><strong>Launched:</strong> ${new Date(p.launchDate).toLocaleDateString()}</p>`:"";
-            const homepage=p.homepage?`<p><a href="${p.homepage}" target="_blank">Visit Homepage</a></p>`:"";
-
-            return `
-              <div class="result-card">
-                <h3 style="color:#4b3ba6;">${p.name||"Untitled Product"}</h3>
-                <p style="font-weight:600;color:${sourceColor};">${sourceIcon} ${p.source}</p>
-                ${tagline}${description}${founder}${price}${rating}${votes}${launch}${homepage}
-                ${p.topics?`<div class="badges">${p.topics.split(',').map(cat=>`<span class="badge">${cat.trim()}</span>`).join('')}</div>`:""}
-              </div>
-            `;
-          }).join("");
-
-          resultsContainer.innerHTML=`
-            <h2 style="margin-top:10px;">Results for ${selectedTopic}</h2>
-            <p style="color:#555;font-size:0.9rem;">Total combined results: ${data.products.length}</p>
-            ${cards}`;
-        }catch(err){
-          clearInterval(progressTimer);
-          loading.style.display="none";
-          resultsContainer.innerHTML=`<p>⚠️ Error fetching results. Please try again.</p>`;
-        }
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        buttons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        selectedCat = btn.dataset.cat;
       });
     });
+
+    startBtn.addEventListener("click", async () => {
+      if (!selectedCat) {
+        alert("Please select a category first.");
+        return;
+      }
+
+      const maxPages = parseInt(document.getElementById("maxPages").value);
+      resultsDiv.innerHTML = "";
+      progress.style.display = "block";
+
+      // estimated dynamic loading time
+      let seconds = Math.ceil(maxPages * 2.3);
+      progressText.textContent = `Fetching results... (~${seconds}s remaining)`;
+
+      const timer = setInterval(() => {
+        if (seconds > 0) {
+          seconds--;
+          progressText.textContent = `Fetching results... (~${seconds}s remaining)`;
+        }
+      }, 1000);
+
+      try {
+        const res = await fetch("/api/combined-crawl", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ categories: [selectedCat], maxPages })
+        });
+        const data = await res.json();
+        clearInterval(timer);
+        progress.style.display = "none";
+        renderResults(data.products || []);
+      } catch (err) {
+        clearInterval(timer);
+        progressText.textContent = "❌ Error fetching results.";
+        console.error(err);
+      }
+    });
+
+    function renderResults(products) {
+      if (!products.length) {
+        resultsDiv.innerHTML = "<p>No results found.</p>";
+        return;
+      }
+
+      resultsDiv.innerHTML = products.map(p => `
+        <div class="product-card">
+          <div class="product-title"><a href="${p.url}" target="_blank">${p.name || "Unnamed Product"}</a></div>
+          <div class="link-line"><a href="${p.url}" target="_blank" style="color:#555;font-size:0.9rem;">${p.url}</a></div>
+          <div class="source ${p.source === "AppSumo" ? "as" : "ph"}">
+            ${p.source === "AppSumo" ? "💰 AppSumo" : "🚀 Product Hunt"}
+          </div>
+          ${p.tagline ? `<p><strong>Tagline:</strong> ${p.tagline}</p>` : ""}
+          ${p.description ? `<p><strong>Description:</strong> ${p.description}</p>` : ""}
+          <div class="meta-line">
+            ${p.votes ? `<strong>Votes:</strong> ${p.votes}&nbsp;&nbsp;` : ""}
+            ${p.rating ? `<strong>Rating:</strong> ${p.rating}&nbsp;&nbsp;` : ""}
+            ${p.launchDate ? `<strong>Launched:</strong> ${new Date(p.launchDate).toLocaleDateString()}` : ""}
+          </div>
+          ${p.topics ? `
+            <div class="categories">
+              ${p.topics.split(",").map(t => `<span class="cat">${t.trim()}</span>`).join("")}
+            </div>` : ""}
+        </div>
+      `).join("");
+    }
   </script>
 </body>
 </html>
