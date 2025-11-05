@@ -5,90 +5,156 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>🚀 Product Hunt + 💰 AppSumo Crawler</title>
   <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: "Inter", sans-serif;
-      background: linear-gradient(to bottom right, #6a4bf4, #b16cff);
-      color: #fff;
-      margin: 0;
-      padding: 0;
-      text-align: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
     }
     h1 {
-      margin-top: 40px;
+      text-align: center;
       font-size: 2rem;
+      color: #4b3ba6;
+      margin-bottom: 10px;
     }
-    #platforms {
-      margin-bottom: 15px;
+    #subtitle {
+      text-align: center;
+      font-size: 1rem;
+      color: #666;
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
       font-weight: 600;
+      margin-bottom: 6px;
+      color: #333;
     }
+    select, input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    select:focus, input:focus { border-color: #667eea; outline: none; }
     #topics-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 12px;
-      margin: 20px;
+      margin-bottom: 20px;
     }
     .topic-btn {
-      background: #fff;
-      color: #6a4bf4;
+      background: #f3f3f3;
+      color: #333;
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .topic-btn:hover, .topic-btn.selected {
+      background: #667eea;
+      color: #fff;
+    }
+    .btn {
+      width: 100%;
+      background: #667eea;
+      color: white;
+      padding: 15px;
       border: none;
       border-radius: 8px;
-      padding: 10px 16px;
-      cursor: pointer;
+      font-size: 1.1rem;
       font-weight: 600;
-      transition: all 0.2s;
+      cursor: pointer;
+      transition: background 0.3s;
     }
-    .topic-btn:hover {
-      background: #e4d9ff;
+    .btn:hover { background: #5568d3; }
+    #loading {
+      display: none;
+      text-align: center;
+      margin-top: 30px;
     }
+    .spinner {
+      border: 4px solid #eee;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 10px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     #results {
-      max-width: 900px;
-      margin: 30px auto;
-      background: #fff;
-      color: #222;
+      margin-top: 30px;
+      background: #fafafa;
       border-radius: 12px;
       padding: 20px;
-      text-align: left;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
     .result-card {
-      border-bottom: 1px solid #eee;
-      padding: 12px 0;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 15px 0;
     }
-    .result-card:last-child {
-      border-bottom: none;
-    }
-    .result-card h3 {
-      margin: 0;
-      font-size: 1.1rem;
-      color: #4b3ba6;
-    }
-    .source-tag {
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #888;
-    }
-    a {
-      color: #6a4bf4;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
+    .result-card:last-child { border-bottom: none; }
+    .result-card h3 { font-size: 1.2rem; color: #4b3ba6; margin-bottom: 5px; }
+    .source-tag { font-weight: bold; color: #888; font-size: 0.9rem; margin-bottom: 5px; }
+    a { color: #667eea; text-decoration: none; }
+    a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
-  <h1>🚀 Product Hunt + 💰 AppSumo Crawler</h1>
-  <div id="platforms">Discover trending startups & lifetime deals by topic</div>
+  <div class="container">
+    <h1>🚀 Product Hunt + 💰 AppSumo Crawler</h1>
+    <p id="subtitle">Discover trending startups & lifetime deals by topic</p>
 
-  <div id="topics-container"></div>
+    <div id="topics-container"></div>
 
-  <div id="results">Click a topic to start crawling...</div>
+    <form id="crawlForm">
+      <label for="maxPages">Maximum Products to Scrape:</label>
+      <input type="number" id="maxPages" value="30" min="1" max="100" />
+
+      <label for="sortBy">Sort By:</label>
+      <select id="sortBy">
+        <option value="">Default</option>
+        <option value="latest">Latest</option>
+        <option value="rating">Highest Rating</option>
+        <option value="reviews">Most Reviews</option>
+      </select>
+
+      <label for="crawlMode">Crawl Mode:</label>
+      <select id="crawlMode">
+        <option value="fast">Fast Mode (Quick, may miss details)</option>
+        <option value="complete">Complete Mode (Slower, more accurate)</option>
+      </select>
+
+      <p style="font-size: 0.85rem; color: #777; margin-top: -8px; margin-bottom: 15px;">
+        💡 Tip: Start in Fast mode, then recrawl in Complete mode if needed.
+      </p>
+
+      <button type="submit" class="btn">Start Crawling</button>
+    </form>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      Fetching results...
+    </div>
+
+    <div id="results">Click a topic and start crawling to see combined results.</div>
+  </div>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Combined topics from both Product Hunt & AppSumo
       const topics = [
         "Artificial Intelligence", "Developer Tools", "Design Tools", "Marketing",
         "Productivity", "Finance", "Education", "Health & Fitness",
@@ -96,39 +162,59 @@
         "Operations", "Marketing & Sales", "Build it Yourself", "Media Tools",
         "Development & IT", "Customer Experience"
       ];
-
-      // Remove duplicates (e.g. Marketing appears in both)
       const uniqueTopics = [...new Set(topics.map(t => t.trim()))];
 
       const topicsContainer = document.getElementById("topics-container");
       const resultsContainer = document.getElementById("results");
+      const loading = document.getElementById("loading");
+      const form = document.getElementById("crawlForm");
 
-      // Display topic buttons
+      let selectedTopic = null;
+
       uniqueTopics.forEach(topic => {
         const btn = document.createElement("button");
         btn.textContent = topic;
         btn.className = "topic-btn";
-        btn.onclick = () => fetchResults(topic);
+        btn.onclick = (e) => {
+          e.preventDefault();
+          document.querySelectorAll(".topic-btn").forEach(b => b.classList.remove("selected"));
+          btn.classList.add("selected");
+          selectedTopic = topic;
+        };
         topicsContainer.appendChild(btn);
       });
 
-      // Fetch results from the backend combined API
-      async function fetchResults(topic) {
-        resultsContainer.innerHTML = `<p>⏳ Crawling <b>${topic}</b> data from Product Hunt + AppSumo...</p>`;
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!selectedTopic) {
+          alert("Please select a topic first!");
+          return;
+        }
+
+        const maxPages = parseInt(document.getElementById("maxPages").value);
+        const sortBy = document.getElementById("sortBy").value;
+        const crawlMode = document.getElementById("crawlMode").value;
+
+        loading.style.display = "block";
+        resultsContainer.innerHTML = "";
+
         try {
           const res = await fetch("/api/combined-crawl", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              categories: [topic.toLowerCase()],
-              maxPages: 10
+              categories: [selectedTopic.toLowerCase()],
+              maxPages,
+              sortBy,
+              crawlMode
             })
           });
+
           const data = await res.json();
-          console.log("✅ Combined results:", data);
+          loading.style.display = "none";
 
           if (!data.success || !data.products?.length) {
-            resultsContainer.innerHTML = `<p>No results found for ${topic} 😕</p>`;
+            resultsContainer.innerHTML = `<p>No results found for ${selectedTopic} 😕</p>`;
             return;
           }
 
@@ -145,15 +231,16 @@
           `).join("");
 
           resultsContainer.innerHTML = `
-            <h2>Results for ${topic}</h2>
+            <h2>Results for ${selectedTopic}</h2>
             ${cards}
           `;
         } catch (err) {
-          console.error(err);
-          resultsContainer.innerHTML = `<p>⚠️ Error fetching ${topic} results</p>`;
+          loading.style.display = "none";
+          resultsContainer.innerHTML = `<p>⚠️ Error fetching results.</p>`;
         }
-      }
+      });
     });
   </script>
 </body>
 </html>
+
