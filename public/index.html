@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🚀 Product Hunt + AppSumo Crawler</title>
+  <title>🚀 Product Hunt + 💰 AppSumo Crawler</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -106,6 +106,14 @@
     }
     .result-card a { color:#4b3ba6;text-decoration:none; }
     .result-card a:hover { text-decoration:underline; }
+    .badges { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
+    .badge {
+      background:#667eea;
+      color:white;
+      padding:4px 10px;
+      border-radius:10px;
+      font-size:0.8rem;
+    }
   </style>
 </head>
 <body>
@@ -214,27 +222,28 @@
             return;
           }
 
-          const cards=data.products.map(p=>`
-            <div class="result-card">
-              <h3><a href="${p.url}" target="_blank">${p.name||"Untitled Product"}</a></h3>
-              <p style="font-weight:600;color:${p.source==="AppSumo"?"#DAA520":"#667eea"};">
-                ${p.source==="AppSumo"?"💰 AppSumo":"🚀 Product Hunt"}
-              </p>
-              ${p.tagline?`<p><strong>Tagline:</strong> ${p.tagline}</p>`:""}
-              ${p.description?`<p><strong>Description:</strong> ${p.description}</p>`:""}
-              <div style="display:flex;flex-wrap:wrap;gap:15px;margin-top:10px;">
-                ${p.votes?`<span><strong>Votes:</strong> ${p.votes}</span>`:""}
-                ${p.rating?`<span><strong>Rating:</strong> ${p.rating}</span>`:""}
-                ${p.launchDate?`<span><strong>Launched:</strong> ${new Date(p.launchDate).toLocaleDateString()}</span>`:""}
+          const cards=data.products.map(p=>{
+            const isPH=p.source==="Product Hunt";
+            const sourceColor=isPH?"#667eea":"#DAA520";
+            const sourceIcon=isPH?"🚀":"💰";
+            const tagline=p.tagline?`<p><strong>Tagline:</strong> ${p.tagline}</p>`:"";
+            const description=p.description?`<p><strong>Description:</strong> ${p.description}</p>`:"";
+            const founder=p.founder?`<p><strong>Founder:</strong> ${p.founder}</p>`:"";
+            const price=p.price?`<p><strong>Price:</strong> ${p.price}</p>`:"";
+            const rating=p.rating?`<p><strong>Rating:</strong> ${p.rating}</p>`:"";
+            const votes=p.votes?`<p><strong>Votes:</strong> ${p.votes}</p>`:"";
+            const launch=p.launchDate?`<p><strong>Launched:</strong> ${new Date(p.launchDate).toLocaleDateString()}</p>`:"";
+            const homepage=p.homepage?`<p><a href="${p.homepage}" target="_blank">Visit Homepage</a></p>`:"";
+
+            return `
+              <div class="result-card">
+                <h3 style="color:#4b3ba6;">${p.name||"Untitled Product"}</h3>
+                <p style="font-weight:600;color:${sourceColor};">${sourceIcon} ${p.source}</p>
+                ${tagline}${description}${founder}${price}${rating}${votes}${launch}${homepage}
+                ${p.topics?`<div class="badges">${p.topics.split(',').map(cat=>`<span class="badge">${cat.trim()}</span>`).join('')}</div>`:""}
               </div>
-              ${p.topics?`
-                <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;">
-                  ${p.topics.split(',').map(cat=>`
-                    <span style="background:#667eea;color:white;padding:4px 10px;border-radius:10px;font-size:0.8rem;">
-                      ${cat.trim()}
-                    </span>`).join('')}
-                </div>`:""}
-            </div>`).join("");
+            `;
+          }).join("");
 
           resultsContainer.innerHTML=`
             <h2 style="margin-top:10px;">Results for ${selectedTopic}</h2>
