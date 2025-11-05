@@ -15,7 +15,7 @@ export async function crawlCombined(limit = 10, topic = null) {
       crawlProductHunt(limit, topic),
       (async () => {
         const result = await crawlAppSumo([topic], limit);
-        // ✅ Only return the products array (ignore metadata)
+        // ✅ Only return the products array (ignore rateLimited & metadata)
         return result.products || [];
       })(),
     ]);
@@ -30,7 +30,7 @@ export async function crawlCombined(limit = 10, topic = null) {
     const formattedPH = phData.map((p) => ({ ...p, source: "Product Hunt" }));
     const formattedAS = asData.map((p) => ({ ...p, source: "AppSumo" }));
 
-    // Combine and sort by launch date if available
+    // Combine & sort by launch date if available
     const combined = [...formattedPH, ...formattedAS].sort((a, b) => {
       if (a.launchDate && b.launchDate) {
         return new Date(b.launchDate) - new Date(a.launchDate);
@@ -49,9 +49,10 @@ export async function crawlCombined(limit = 10, topic = null) {
   }
 }
 
-// Optional standalone test (run locally)
+// Optional standalone test (for local debugging)
 if (import.meta.url === `file://${process.argv[1]}`) {
   crawlCombined(10, "artificial-intelligence")
     .then((data) => console.log(JSON.stringify(data, null, 2)))
     .catch((err) => console.error(err));
 }
+
