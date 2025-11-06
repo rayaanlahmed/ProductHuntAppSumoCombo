@@ -3,7 +3,7 @@ import { crawlAppSumo } from "./appsumo-crawler.js";
 
 /**
  * Crawl both Product Hunt and AppSumo and return a combined result.
- * @param {number} limit - Number of posts to fetch from each source
+ * @param {number} limit - Number of posts to fetch in total (not per source)
  * @param {string|null} topic - Optional category or keyword filter
  */
 export async function crawlCombined(limit = 10, topic = null) {
@@ -15,7 +15,6 @@ export async function crawlCombined(limit = 10, topic = null) {
       crawlProductHunt(limit, topic),
       (async () => {
         const result = await crawlAppSumo([topic], limit);
-        // ✅ Only return the products array (ignore rateLimited & metadata)
         return result.products || [];
       })(),
     ]);
@@ -38,11 +37,14 @@ export async function crawlCombined(limit = 10, topic = null) {
       return 0;
     });
 
+    // ✅ Respect user-defined max limit
+    const limitedCombined = combined.slice(0, limit);
+
     console.log(
-      `✅ Combined total: ${combined.length} (${formattedPH.length} from Product Hunt, ${formattedAS.length} from AppSumo)`
+      `✅ Combined total (limited to ${limit}): ${limitedCombined.length} results`
     );
 
-    return combined;
+    return limitedCombined;
   } catch (error) {
     console.error("🚨 Combined crawler failed:", error);
     return [];
