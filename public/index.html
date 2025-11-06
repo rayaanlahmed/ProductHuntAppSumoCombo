@@ -219,7 +219,7 @@
         const s = firstNonEmpty(fromTopics, fromCats);
         if (typeof s === "string") return s.split(",").map(x=>x.trim()).filter(Boolean);
         return [];
-        }
+      }
 
       form.addEventListener("submit",async(e)=>{
         e.preventDefault();
@@ -266,13 +266,11 @@
             const sourceIcon = isPH ? "🚀 Product Hunt" : "💰 AppSumo";
             const sourceColor = "#667eea";
 
-            // --- Normalize fields for identical layout ---
             const tagline = firstNonEmpty(raw.tagline, raw.summary);
             const description = firstNonEmpty(raw.description, raw.longDescription, raw.summary);
             const rating = firstNonEmpty(raw.rating, raw.reviewsRating, "N/A");
             const votes  = firstNonEmpty(raw.votes, raw.reviews, raw.reviewsCount, null);
             let launched = firstNonEmpty(raw.launchDate, raw.founded, raw.releaseDate, null);
-            // Format launched (year or date)
             let launchedHTML = "";
             if (launched){
               try{
@@ -285,15 +283,12 @@
               } catch(_) {}
             }
 
-            // Pricing (AppSumo)
             const pricingText = normalizePrice(firstNonEmpty(raw.price, raw.lifetimePrice, raw.pricingTiers));
-            const pricingHTML = pricingText ? `<p><strong>Pricing:</strong> ${pricingText}</p>` : "";
+            const pricingHTML = (!isPH && pricingText) ? `<p><strong>Pricing:</strong> ${pricingText}</p>` : "";
 
-            // One link only (homepage fallback to url/producthunt_url)
             const homepage = firstNonEmpty(raw.homepage, raw.url, raw.producthunt_url);
             const homepageHTML = homepage ? `<p><a href="${homepage}" target="_blank">Visit Homepage</a></p>` : "";
 
-            // Badges
             const badgeItems = normalizeBadges(raw);
             const badgesHTML = badgeItems.length
               ? `<div class="badges">${badgeItems.map(cat=>`<span class="badge">${cat}</span>`).join("")}</div>`
@@ -303,10 +298,9 @@
               <div class="result-card">
                 <h3 style="color:#4b3ba6;">${raw.name || "Untitled Product"}</h3>
                 <p style="font-weight:600;color:${sourceColor};">${sourceIcon}</p>
-
                 ${tagline ? `<p><strong>Tagline:</strong> ${tagline}</p>` : `<p><strong>Tagline:</strong> N/A</p>`}
                 ${description ? `<p><strong>Description:</strong> ${description}</p>` : ``}
-                ${!isPH ? pricingHTML : ``}
+                ${pricingHTML}
                 <p><strong>Rating:</strong> ${rating}</p>
                 ${votes !== null ? `<p><strong>Votes:</strong> ${votes}</p>` : ``}
                 ${launchedHTML}
@@ -316,10 +310,43 @@
             `;
           }).join("");
 
-          resultsContainer.innerHTML=`
-            <h2 style="margin-top:10px;">Results for ${selectedTopic}</h2>
-            <p style="color:#555;font-size:0.9rem;">Total combined results: ${data.products.length}</p>
-            ${cards}`;
+          resultsContainer.innerHTML = `
+            <div class="result-header" style="display:flex;justify-content:space-between;align-items:center;background:#fff;padding:15px 20px;border-radius:8px;margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,0.05);">
+              <div class="result-count" style="font-size:1.2rem;font-weight:600;color:#333;">
+                Found ${data.products.length} product${data.products.length !== 1 ? 's' : ''}
+              </div>
+              <div class="result-buttons" style="display:flex;gap:10px;">
+                <button id="restartBtn" style="background:#dc3545;color:white;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;font-weight:600;">New Search</button>
+                <button id="downloadJsonBtn" style="background:#28a745;color:white;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Download JSON</button>
+                <button id="downloadMdBtn" style="background:#17a2b8;color:white;padding:10px 18px;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Download Markdown</button>
+              </div>
+            </div>
+            ${cards}
+          `;
+
+          document.addEventListener("click", (e) => {
+            if (e.target.id === "restartBtn") {
+              resultsContainer.innerHTML = "";
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+            if (e.target.id === "downloadJsonBtn") {
+              const blob = new Blob([JSON.stringify(data.products, null, 2)], { type: "application/json" });
+              const link = document.createElement("a");
+              link.href = URL.createObjectURL(blob);
+              link.download = `${selectedTopic}_products.json`;
+              link.click();
+            }
+            if (e.target.id === "downloadMdBtn") {
+              const markdown = data.products.map((p, i) =>
+                `### ${i + 1}. ${p.name}\n\n**Source:** ${p.source}\n\n**Description:** ${p.description || "N/A"}\n\n---`
+              ).join("\n\n");
+              const blob = new Blob([markdown], { type: "text/markdown" });
+              const link = document.createElement("a");
+              link.href = URL.createObjectURL(blob);
+              link.download = `${selectedTopic}_products.md`;
+              link.click();
+            }
+          });
         }catch(err){
           clearInterval(progressTimer);
           loading.style.display="none";
@@ -330,5 +357,4 @@
   </script>
 </body>
 </html>
-
 
