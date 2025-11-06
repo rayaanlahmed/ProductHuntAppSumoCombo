@@ -101,8 +101,11 @@
       transition: width 0.3s;
     }
     .result-card {
-      padding:20px 0;
+      padding:20px 25px;
       border-bottom:1px solid #eee;
+      background:#fafafa;
+      border-radius:10px;
+      margin-bottom:20px;
     }
     .result-card a { color:#4b3ba6;text-decoration:none; }
     .result-card a:hover { text-decoration:underline; }
@@ -234,13 +237,15 @@
             const votes=p.votes?`<p><strong>Votes:</strong> ${p.votes}</p>`:"";
             const launch=p.launchDate?`<p><strong>Launched:</strong> ${new Date(p.launchDate).toLocaleDateString()}</p>`:"";
             const homepage=p.homepage?`<p><a href="${p.homepage}" target="_blank">Visit Homepage</a></p>`:"";
+            const producthuntLink=isPH && p.producthunt_url
+              ? `<p><a href="${p.producthunt_url}" target="_blank" style="color:#4b3ba6;">View on Product Hunt</a></p>` : "";
 
             return `
               <div class="result-card">
-                <h3 style="color:#4b3ba6;">${p.name||"Untitled Product"}</h3>
-                <p style="font-weight:600;color:${sourceColor};">${sourceIcon} ${p.source}</p>
-                ${tagline}${description}${founder}${price}${rating}${votes}${launch}${homepage}
-                ${p.topics?`<div class="badges">${p.topics.split(',').map(cat=>`<span class="badge">${cat.trim()}</span>`).join('')}</div>`:""}
+                <h3 style="color:#4b3ba6;margin-bottom:8px;">${p.name||"Untitled Product"}</h3>
+                <p style="font-weight:600;color:${sourceColor};margin-bottom:10px;">${sourceIcon} ${p.source}</p>
+                ${tagline}${description}${founder}${price}${rating}${votes}${launch}${homepage}${producthuntLink}
+                ${p.topics?`<div class="badges" style="margin-top:12px;">${p.topics.split(',').map(cat=>`<span class="badge">${cat.trim()}</span>`).join('')}</div>`:""}
               </div>
             `;
           }).join("");
@@ -259,3 +264,4 @@
   </script>
 </body>
 </html>
+
