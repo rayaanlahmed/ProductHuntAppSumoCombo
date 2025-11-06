@@ -109,7 +109,6 @@
       margin-bottom: 20px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
-
     .result-card a { color:#4b3ba6;text-decoration:none; }
     .result-card a:hover { text-decoration:underline; }
     .badges { margin-top:10px; display:flex; flex-wrap:wrap; gap:8px; }
@@ -188,6 +187,40 @@
         topicsContainer.appendChild(btn);
       });
 
+      function firstNonEmpty(...vals){
+        for (const v of vals){
+          if (v === 0) return 0;
+          if (Array.isArray(v) && v.length) return v;
+          if (typeof v === "string" && v.trim()) return v.trim();
+          if (v && typeof v !== "string") return v;
+        }
+        return null;
+      }
+
+      function normalizePrice(p){
+        if (!p) return null;
+        if (typeof p === "string") return p;
+        if (Array.isArray(p)) return p.join(", ");
+        if (typeof p === "object"){
+          const parts=[];
+          for (const k of Object.keys(p)){
+            parts.push(`${k}: ${p[k]}`);
+          }
+          return parts.join(", ");
+        }
+        return String(p);
+      }
+
+      function normalizeBadges(p){
+        const fromTopics = p.topics;
+        const fromCats   = p.categories;
+        if (Array.isArray(fromTopics)) return fromTopics;
+        if (Array.isArray(fromCats))   return fromCats;
+        const s = firstNonEmpty(fromTopics, fromCats);
+        if (typeof s === "string") return s.split(",").map(x=>x.trim()).filter(Boolean);
+        return [];
+        }
+
       form.addEventListener("submit",async(e)=>{
         e.preventDefault();
         if(!selectedTopic){alert("Please select a topic first!");return;}
@@ -228,25 +261,57 @@
             return;
           }
 
-          const cards=data.products.map(p=>{
-            const isPH=p.source==="Product Hunt";
-            const sourceColor="#667eea";
-            const sourceIcon=isPH?"🚀 Product Hunt":"💰 AppSumo";
-            const tagline=p.tagline?`<p><strong>Tagline:</strong> ${p.tagline}</p>`:"";
-            const description=p.description?`<p><strong>Description:</strong> ${p.description}</p>`:"";
-            const founder=p.founder?`<p><strong>Founder:</strong> ${p.founder}</p>`:"";
-            const price=(!isPH && p.price)?`<p><strong>Pricing:</strong> ${p.price}</p>`:"";
-            const rating=p.rating?`<p><strong>Rating:</strong> ${p.rating}</p>`:"";
-            const votes=p.votes?`<p><strong>Votes:</strong> ${p.votes}</p>`:"";
-            const launch=p.launchDate?`<p><strong>Launched:</strong> ${new Date(p.launchDate).toLocaleDateString()}</p>`:"";
-            const homepage=p.homepage?`<p><a href="${p.homepage}" target="_blank">Visit Homepage</a></p>`:"";
+          const cards=data.products.map(raw=>{
+            const isPH = raw.source === "Product Hunt";
+            const sourceIcon = isPH ? "🚀 Product Hunt" : "💰 AppSumo";
+            const sourceColor = "#667eea";
+
+            // --- Normalize fields for identical layout ---
+            const tagline = firstNonEmpty(raw.tagline, raw.summary);
+            const description = firstNonEmpty(raw.description, raw.longDescription, raw.summary);
+            const rating = firstNonEmpty(raw.rating, raw.reviewsRating, "N/A");
+            const votes  = firstNonEmpty(raw.votes, raw.reviews, raw.reviewsCount, null);
+            let launched = firstNonEmpty(raw.launchDate, raw.founded, raw.releaseDate, null);
+            // Format launched (year or date)
+            let launchedHTML = "";
+            if (launched){
+              try{
+                if (String(launched).length === 4 && /^[0-9]{4}$/.test(String(launched))){
+                  launchedHTML = `<p><strong>Launched:</strong> ${launched}</p>`;
+                } else {
+                  const d = new Date(launched);
+                  launchedHTML = isNaN(d) ? "" : `<p><strong>Launched:</strong> ${d.toLocaleDateString()}</p>`;
+                }
+              } catch(_) {}
+            }
+
+            // Pricing (AppSumo)
+            const pricingText = normalizePrice(firstNonEmpty(raw.price, raw.lifetimePrice, raw.pricingTiers));
+            const pricingHTML = pricingText ? `<p><strong>Pricing:</strong> ${pricingText}</p>` : "";
+
+            // One link only (homepage fallback to url/producthunt_url)
+            const homepage = firstNonEmpty(raw.homepage, raw.url, raw.producthunt_url);
+            const homepageHTML = homepage ? `<p><a href="${homepage}" target="_blank">Visit Homepage</a></p>` : "";
+
+            // Badges
+            const badgeItems = normalizeBadges(raw);
+            const badgesHTML = badgeItems.length
+              ? `<div class="badges">${badgeItems.map(cat=>`<span class="badge">${cat}</span>`).join("")}</div>`
+              : "";
 
             return `
               <div class="result-card">
-                <h3 style="color:#4b3ba6;">${p.name||"Untitled Product"}</h3>
+                <h3 style="color:#4b3ba6;">${raw.name || "Untitled Product"}</h3>
                 <p style="font-weight:600;color:${sourceColor};">${sourceIcon}</p>
-                ${tagline}${price}${description}${founder}${rating}${votes}${launch}${homepage}
-                ${p.topics?`<div class="badges">${p.topics.split(',').map(cat=>`<span class="badge">${cat.trim()}</span>`).join('')}</div>`:""}
+
+                ${tagline ? `<p><strong>Tagline:</strong> ${tagline}</p>` : `<p><strong>Tagline:</strong> N/A</p>`}
+                ${description ? `<p><strong>Description:</strong> ${description}</p>` : ``}
+                ${!isPH ? pricingHTML : ``}
+                <p><strong>Rating:</strong> ${rating}</p>
+                ${votes !== null ? `<p><strong>Votes:</strong> ${votes}</p>` : ``}
+                ${launchedHTML}
+                ${homepageHTML}
+                ${badgesHTML}
               </div>
             `;
           }).join("");
