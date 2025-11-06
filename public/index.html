@@ -227,8 +227,8 @@
 
           const cards=data.products.map(p=>{
             const isPH=p.source==="Product Hunt";
-            const sourceColor=isPH?"#667eea":"#DAA520";
-            const sourceIcon=isPH?"🚀":"💰";
+            const sourceColor="#667eea";
+            const sourceIcon=isPH?"🚀 Product Hunt":"💰 AppSumo";
             const tagline=p.tagline?`<p><strong>Tagline:</strong> ${p.tagline}</p>`:"";
             const description=p.description?`<p><strong>Description:</strong> ${p.description}</p>`:"";
             const founder=p.founder?`<p><strong>Founder:</strong> ${p.founder}</p>`:"";
@@ -237,15 +237,13 @@
             const votes=p.votes?`<p><strong>Votes:</strong> ${p.votes}</p>`:"";
             const launch=p.launchDate?`<p><strong>Launched:</strong> ${new Date(p.launchDate).toLocaleDateString()}</p>`:"";
             const homepage=p.homepage?`<p><a href="${p.homepage}" target="_blank">Visit Homepage</a></p>`:"";
-            const producthuntLink=isPH && p.producthunt_url
-              ? `<p><a href="${p.producthunt_url}" target="_blank" style="color:#4b3ba6;">View on Product Hunt</a></p>` : "";
 
             return `
               <div class="result-card">
-                <h3 style="color:#4b3ba6;margin-bottom:8px;">${p.name||"Untitled Product"}</h3>
-                <p style="font-weight:600;color:${sourceColor};margin-bottom:10px;">${sourceIcon} ${p.source}</p>
-                ${tagline}${description}${founder}${price}${rating}${votes}${launch}${homepage}${producthuntLink}
-                ${p.topics?`<div class="badges" style="margin-top:12px;">${p.topics.split(',').map(cat=>`<span class="badge">${cat.trim()}</span>`).join('')}</div>`:""}
+                <h3 style="color:#4b3ba6;">${p.name||"Untitled Product"}</h3>
+                <p style="font-weight:600;color:${sourceColor};">${sourceIcon}</p>
+                ${tagline}${price}${description}${founder}${rating}${votes}${launch}${homepage}
+                ${p.topics?`<div class="badges">${p.topics.split(',').map(cat=>`<span class="badge">${cat.trim()}</span>`).join('')}</div>`:""}
               </div>
             `;
           }).join("");
@@ -264,5 +262,4 @@
   </script>
 </body>
 </html>
-
 
