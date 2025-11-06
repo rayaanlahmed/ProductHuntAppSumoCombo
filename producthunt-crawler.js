@@ -88,10 +88,13 @@ export async function crawlProductHunt(limit = 10, topic = null) {
       ).join(", ") || "Unknown",
     url: node.website,
     producthunt_url: node.url,
+    // ✅ Added homepage + source for UI consistency
+    homepage: node.url || `https://www.producthunt.com/posts/${node.name.toLowerCase().replace(/\s+/g, "-")}`,
     topics: node.topics.edges.map((t) => t.node.name).join(", "),
     description: node.description,
     thumbnail: node.thumbnail?.url,
     launchDate: node.createdAt,
+    source: "Product Hunt",
   }));
 
   console.log(`✅ Found ${formatted.length} posts for topic: ${topicSlug || "Trending"}`);
