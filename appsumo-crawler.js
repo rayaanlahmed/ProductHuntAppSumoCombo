@@ -365,6 +365,14 @@ async function processProducts(pages, targetCategories) {
         foundingDate: extractFoundingDate(page),
         categories: extractCategories(page),
       };
+// 🏷️ Flatten pricing tiers for easier front-end use
+if (product.pricing?.tiers?.length > 0) {
+  product.price = product.pricing.tiers.map(t => `${t.name || 'Tier'}: ${t.price}`).join(' | ');
+} else if (product.pricing?.lifetime) {
+  product.price = product.pricing.lifetime;
+} else {
+  product.price = 'Pricing unavailable';
+}
 
       console.log(`    ✓ Added product: ${product.name}`);
       products.push(product);
