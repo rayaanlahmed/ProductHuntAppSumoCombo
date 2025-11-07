@@ -3,23 +3,28 @@ import { crawlAppSumo } from "./appsumo-crawler.js";
 
 /**
  * Crawl both Product Hunt and AppSumo and return a combined result.
- * @param {number} limit - Number of posts to fetch in total (not per source)
+ * @param {number} limit - Number of posts to fetch total (split between both)
  * @param {string|null} topic - Optional category or keyword filter
  */
 export async function crawlCombined(limit = 10, topic = null) {
-  console.log("🧠 Starting combined crawl for:", topic);
+  const cleanTopic = topic
+    ? topic.toLowerCase().replace(/&/g, "and").replace(/\s+/g, "-")
+    : null;
+
+  console.log("🧠 Starting combined crawl for:", cleanTopic || "Trending");
 
   try {
-    // Run both crawlers in parallel
+    // Divide limit evenly between sources
+    const perSourceLimit = Math.max(1, Math.floor(limit / 2));
+
     const [productHuntResults, appSumoResults] = await Promise.allSettled([
-      crawlProductHunt(limit, topic),
+      crawlProductHunt(perSourceLimit, cleanTopic),
       (async () => {
-        const result = await crawlAppSumo([topic], limit);
+        const result = await crawlAppSumo(cleanTopic ? [cleanTopic] : [], perSourceLimit);
         return result.products || [];
       })(),
     ]);
 
-    // Handle partial failures gracefully
     const phData =
       productHuntResults.status === "fulfilled" ? productHuntResults.value : [];
     const asData =
@@ -37,21 +42,21 @@ export async function crawlCombined(limit = 10, topic = null) {
       return 0;
     });
 
-    // ✅ Respect user-defined max limit
-    const limitedCombined = combined.slice(0, limit);
+    // ✅ Respect exact limit requested by user
+    const finalResults = combined.slice(0, limit);
 
     console.log(
-      `✅ Combined total (limited to ${limit}): ${limitedCombined.length} results`
+      `✅ Combined total: ${finalResults.length} results (${formattedPH.length} PH, ${formattedAS.length} AppSumo)`
     );
 
-    return limitedCombined;
+    return finalResults;
   } catch (error) {
     console.error("🚨 Combined crawler failed:", error);
     return [];
   }
 }
 
-// Optional standalone test (for local debugging)
+// Optional standalone test
 if (import.meta.url === `file://${process.argv[1]}`) {
   crawlCombined(10, "artificial-intelligence")
     .then((data) => console.log(JSON.stringify(data, null, 2)))
