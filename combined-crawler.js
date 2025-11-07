@@ -1,66 +1,64 @@
-import fetch from "node-fetch";
-import cheerio from "cheerio";
+import { crawlProductHunt } from "./producthunt-crawler.js";
+import { crawlAppSumo } from "./appsumo-crawler.js";
 
 /**
- * Crawl AppSumo for products by topic/category or keyword.
- * @param {string[]} categories - Category or keyword list
- * @param {number} limit - Number of products to fetch
+ * Crawl both Product Hunt and AppSumo and return a combined result.
+ * @param {number} limit - Number of posts to fetch total (split between both)
+ * @param {string|null} topic - Optional category or keyword filter
  */
-export async function crawlAppSumo(categories = [], limit = 10) {
-  const topic = categories?.[0]?.toLowerCase() || null;
-  const searchUrl = topic
-    ? `https://appsumo.com/search/?q=${encodeURIComponent(topic)}`
-    : "https://appsumo.com/browse/";
+export async function crawlCombined(limit = 10, topic = null) {
+  const cleanTopic = topic
+    ? topic.toLowerCase().replace(/&/g, "and").replace(/\s+/g, "-")
+    : null;
 
-  console.log(`💰 Crawling AppSumo for topic: "${topic}"`);
-  console.log("🔗 URL:", searchUrl);
+  console.log("🧠 Starting combined crawl for:", cleanTopic || "Trending");
 
-  const res = await fetch(searchUrl);
-  if (!res.ok) {
-    throw new Error(`❌ AppSumo request failed: ${res.statusText}`);
+  try {
+    // Divide limit evenly between sources
+    const perSourceLimit = Math.max(1, Math.floor(limit / 2));
+
+    const [productHuntResults, appSumoResults] = await Promise.allSettled([
+      crawlProductHunt(perSourceLimit, cleanTopic),
+      (async () => {
+        const result = await crawlAppSumo(cleanTopic ? [cleanTopic] : [], perSourceLimit);
+        return result.products || [];
+      })(),
+    ]);
+
+    const phData =
+      productHuntResults.status === "fulfilled" ? productHuntResults.value : [];
+    const asData =
+      appSumoResults.status === "fulfilled" ? appSumoResults.value : [];
+
+    // Label results by source
+    const formattedPH = phData.map((p) => ({ ...p, source: "Product Hunt" }));
+    const formattedAS = asData.map((p) => ({ ...p, source: "AppSumo" }));
+
+    // Combine & sort by launch date if available
+    const combined = [...formattedPH, ...formattedAS].sort((a, b) => {
+      if (a.launchDate && b.launchDate) {
+        return new Date(b.launchDate) - new Date(a.launchDate);
+      }
+      return 0;
+    });
+
+    // ✅ Respect exact limit requested by user
+    const finalResults = combined.slice(0, limit);
+
+    console.log(
+      `✅ Combined total: ${finalResults.length} results (${formattedPH.length} PH, ${formattedAS.length} AppSumo)`
+    );
+
+    return finalResults;
+  } catch (error) {
+    console.error("🚨 Combined crawler failed:", error);
+    return [];
   }
-
-  const html = await res.text();
-  const $ = cheerio.load(html);
-
-  const products = [];
-
-  $(".css-1o9mv8n, .css-1cysf6l").each((_, el) => {
-    if (products.length >= limit) return false;
-
-    const name = $(el).find("h3, h2").first().text().trim();
-    const summary = $(el).find("p").first().text().trim();
-    const url =
-      $(el).find("a").attr("href")?.startsWith("http")
-        ? $(el).find("a").attr("href")
-        : `https://appsumo.com${$(el).find("a").attr("href")}`;
-    const price = $(el)
-      .find("[class*='price'], [data-testid='price']")
-      .first()
-      .text()
-      .trim();
-    const reviews = $(el).find("[class*='review']").text().trim();
-
-    if (name) {
-      products.push({
-        name,
-        summary,
-        url,
-        price: price || "Pricing unavailable",
-        reviews: reviews || null,
-        source: "AppSumo",
-      });
-    }
-  });
-
-  console.log(`✅ Found ${products.length} AppSumo products for "${topic}"`);
-
-  return { products };
 }
 
-// Optional local test
+// Optional standalone test
 if (import.meta.url === `file://${process.argv[1]}`) {
-  crawlAppSumo(["marketing"], 10)
+  crawlCombined(10, "artificial-intelligence")
     .then((data) => console.log(JSON.stringify(data, null, 2)))
     .catch((err) => console.error(err));
 }
