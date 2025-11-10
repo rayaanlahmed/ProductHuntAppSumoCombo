@@ -13,29 +13,55 @@ export async function crawlProductHunt(limit = 10, topic = null) {
     ? topic.toLowerCase().replace(/&/g, "and").replace(/\s+/g, "-")
     : null;
 
-  // ✅ General query (Product Hunt removed topic.posts and filters)
-  const query = `
-    query {
-      posts(order: RANKING, first: ${limit}) {
-        edges {
-          node {
-            name
-            tagline
-            votesCount
-            website
-            url
-            description
-            createdAt
-            reviewsRating
-            reviewsCount
-            makers { name username profileImage }
-            thumbnail { url }
-            topics { edges { node { name slug } } }
+  // ✅ If a topic is selected, query that topic directly.
+  const query = topicSlug
+    ? `
+      query {
+        topic(slug: "${topicSlug}") {
+          name
+          posts(order: RANKING, first: ${limit}) {
+            edges {
+              node {
+                name
+                tagline
+                votesCount
+                website
+                url
+                description
+                createdAt
+                reviewsRating
+                reviewsCount
+                makers { name username profileImage }
+                thumbnail { url }
+                topics { edges { node { name slug } } }
+              }
+            }
           }
         }
       }
-    }
-  `;
+    `
+    : `
+      query {
+        posts(order: RANKING, first: ${limit}) {
+          edges {
+            node {
+              name
+              tagline
+              votesCount
+              website
+              url
+              description
+              createdAt
+              reviewsRating
+              reviewsCount
+              makers { name username profileImage }
+              thumbnail { url }
+              topics { edges { node { name slug } } }
+            }
+          }
+        }
+      }
+    `;
 
   const response = await fetch("https://api.producthunt.com/v2/api/graphql", {
     method: "POST",
@@ -51,31 +77,19 @@ export async function crawlProductHunt(limit = 10, topic = null) {
   }
 
   const data = await response.json();
-  console.log("🧩 Product Hunt Raw Response:", JSON.stringify(data, null, 2));
 
   if (data.errors) {
     console.error("🚨 API Error:", data.errors);
     return [];
   }
 
-  const allPosts = data?.data?.posts?.edges?.map(({ node }) => node) || [];
+  // ✅ Extract posts properly based on query type
+  const allPosts = topicSlug
+    ? data?.data?.topic?.posts?.edges?.map(({ node }) => node) || []
+    : data?.data?.posts?.edges?.map(({ node }) => node) || [];
 
-  // ✅ Fuzzy topic matching (for cases like "wearables" vs "smart-wearables")
-  let posts = topicSlug
-    ? allPosts.filter(p =>
-        p.topics.edges.some(t =>
-          t.node.slug.toLowerCase().includes(topicSlug)
-        )
-      )
-    : allPosts;
-
-  // ✅ Fallback: if no posts match, show general trending instead
-  if (topicSlug && posts.length === 0) {
-    console.warn(`⚠️ No products found for topic "${topicSlug}". Showing trending products instead.`);
-    posts = allPosts;
-  }
-
-  const formatted = posts.map((node) => ({
+  // ✅ Format results consistently
+  const formatted = allPosts.map((node) => ({
     name: node.name,
     tagline: node.tagline,
     votes: node.votesCount,
@@ -88,8 +102,11 @@ export async function crawlProductHunt(limit = 10, topic = null) {
       ).join(", ") || "Unknown",
     url: node.website,
     producthunt_url: node.url,
-    // ✅ Added homepage + source for UI consistency
-    homepage: node.url || `https://www.producthunt.com/posts/${node.name.toLowerCase().replace(/\s+/g, "-")}`,
+    homepage:
+      node.url ||
+      `https://www.producthunt.com/posts/${node.name
+        .toLowerCase()
+        .replace(/\s+/g, "-")}`,
     topics: node.topics.edges.map((t) => t.node.name).join(", "),
     description: node.description,
     thumbnail: node.thumbnail?.url,
@@ -98,7 +115,7 @@ export async function crawlProductHunt(limit = 10, topic = null) {
   }));
 
   console.log(`✅ Found ${formatted.length} posts for topic: ${topicSlug || "Trending"}`);
-  return formatted;
+  return formatted.slice(0, limit);
 }
 
 // Optional manual test
@@ -107,4 +124,3 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     .then((data) => console.log(JSON.stringify(data, null, 2)))
     .catch((err) => console.error(err));
 }
-
