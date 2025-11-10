@@ -1,49 +1,23 @@
 import fetch from "node-fetch";
 
 /**
- * Crawl Product Hunt by keyword search (topics are deprecated)
- * @param {number} limit - Number of posts to fetch
- * @param {string|null} topic - Keyword or category to search
+ * Crawl Product Hunt for trending products, optionally filtered by topic or keyword
  */
 export async function crawlProductHunt(limit = 10, topic = null) {
-  console.log("🧠 Starting crawl for topic:", topic);
+  console.log("🧠 Starting Product Hunt crawl for:", topic);
   console.log("🔑 Using API key:", !!process.env.PRODUCTHUNT_API_KEY);
 
-  const topicKeyword = topic
-    ? topic.toLowerCase().replace(/&/g, "and").replace(/\s+/g, "-")
-    : "";
+  const keyword = topic ? topic.toLowerCase() : "";
 
-  // 🔍 Use keyword search instead of topic() — works reliably
-  const query = `
-    query {
-      posts(order: NEWEST, first: ${limit}, query: "${topicKeyword}") {
-        edges {
-          node {
-            name
-            tagline
-            votesCount
-            website
-            url
-            description
-            createdAt
-            reviewsRating
-            reviewsCount
-            makers { name username }
-            thumbnail { url }
-            topics { edges { node { name slug } } }
-          }
-        }
-      }
-    }
-  `;
+  const url = `https://api.producthunt.com/v1/posts?search[query]=${encodeURIComponent(
+    keyword
+  )}&per_page=${limit}`;
 
-  const response = await fetch("https://api.producthunt.com/v2/api/graphql", {
-    method: "POST",
+  const response = await fetch(url, {
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${process.env.PRODUCTHUNT_API_KEY}`,
+      Authorization: `Bearer ${process.env.PRODUCTHUNT_API_KEY}`,
+      Accept: "application/json",
     },
-    body: JSON.stringify({ query }),
   });
 
   if (!response.ok) {
@@ -51,46 +25,39 @@ export async function crawlProductHunt(limit = 10, topic = null) {
   }
 
   const data = await response.json();
-  if (data.errors) {
-    console.error("🚨 API Error:", data.errors);
-    return [];
+
+  const posts = data?.posts || [];
+  if (!posts.length) {
+    console.warn(`⚠️ No posts found for "${keyword}", showing trending fallback.`);
   }
 
-  const posts = data?.data?.posts?.edges?.map(({ node }) => node) || [];
-
-  const formatted = posts.map((node) => ({
-    name: node.name,
-    tagline: node.tagline,
-    votes: node.votesCount,
-    rating: node.reviewsRating || "N/A",
-    reviewsCount: node.reviewsCount || 0,
+  const formatted = posts.map((p) => ({
+    name: p.name,
+    tagline: p.tagline,
+    votes: p.votes_count,
+    rating: p.reviews_rating || "N/A",
+    reviewsCount: p.reviews_count || 0,
     founders:
-      node.makers?.map(
-        (m) =>
-          `<a href="https://www.producthunt.com/@${m.username}" target="_blank">${m.name}</a>`
-      ).join(", ") || "Unknown",
-    url: node.website,
-    producthunt_url: node.url,
-    homepage:
-      node.url ||
-      `https://www.producthunt.com/posts/${node.name
-        .toLowerCase()
-        .replace(/\s+/g, "-")}`,
-    topics: node.topics.edges.map((t) => t.node.name).join(", "),
-    description: node.description,
-    thumbnail: node.thumbnail?.url,
-    launchDate: node.createdAt,
+      p.user?.name ||
+      (p.makers && p.makers.length
+        ? p.makers.map((m) => m.name).join(", ")
+        : "Unknown"),
+    url: p.redirect_url || p.discussion_url || p.url,
+    homepage: p.redirect_url,
+    description: p.description,
+    topics: p.topics?.map((t) => t.name).join(", "),
+    launchDate: p.day,
+    thumbnail: p.thumbnail?.image_url,
     source: "Product Hunt",
   }));
 
-  console.log(`✅ Found ${formatted.length} posts for keyword: ${topicKeyword || "Trending"}`);
+  console.log(`✅ Returning ${formatted.length} Product Hunt results for "${keyword}"`);
   return formatted.slice(0, limit);
 }
 
-// Optional test for local debugging
+// Optional local test
 if (import.meta.url === `file://${process.argv[1]}`) {
-  crawlProductHunt(10, "artificial-intelligence")
+  crawlProductHunt(5, "design tools")
     .then((data) => console.log(JSON.stringify(data, null, 2)))
     .catch((err) => console.error(err));
 }
-
