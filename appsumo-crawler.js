@@ -211,35 +211,40 @@ async function crawlAppSumo(categories = [], maxProducts = 50, sortBy = null) {
  * - price_high: Sort by highest price
  */
 function getCategoryUrl(categories, sortBy = null) {
+  // Category mapping to AppSumo's exact category URLs
   const categoryMap = {
-    // Marketing & Sales
+    // Marketing & sales
     'marketing': 'marketing-sales',
+    'marketers': 'marketing-sales',
     'sales': 'marketing-sales',
     'marketing & sales': 'marketing-sales',
+    'marketing-sales': 'marketing-sales',
 
-    // Operations / Productivity
+    // Operations
     'operations': 'operations',
     'productivity': 'operations',
-    'project management': 'operations',
+    'project': 'operations',
 
-    // Media Tools
+    // Media tools
     'media': 'media-tools',
-    'design': 'media-tools',
+    'media tools': 'media-tools',
+    'media-tools': 'media-tools',
     'video': 'media-tools',
     'audio': 'media-tools',
-    'content creation': 'media-tools',
+    'design': 'media-tools',
 
     // Development & IT
     'development': 'development-it',
+    'dev': 'development-it',
     'it': 'development-it',
+    'development & it': 'development-it',
+    'development-it': 'development-it',
     'developer': 'development-it',
-    'web3': 'development-it',
-    'artificial intelligence': 'development-it',
-    'ai': 'development-it',
 
-    // Customer Experience
+    // Customer experience
     'customer': 'customer-experience',
     'customer experience': 'customer-experience',
+    'customer-experience': 'customer-experience',
     'support': 'customer-experience',
     'crm': 'customer-experience',
 
@@ -248,33 +253,14 @@ function getCategoryUrl(categories, sortBy = null) {
     'accounting': 'finance',
     'invoicing': 'finance',
 
-    // Build It Yourself
+    // Build it yourself
     'build': 'build-it-yourself',
     'build it yourself': 'build-it-yourself',
-    'app builder': 'build-it-yourself',
-
-    // Education / Health
-    'education': 'operations',
-    'health': 'operations',
-    'health & fitness': 'operations',
-    'fitness': 'operations',
-
-    // Startups / Entrepreneurs
-    'startups': 'operations',
-    'entrepreneurs': 'operations',
+    'build-it-yourself': 'build-it-yourself',
+    'builder': 'build-it-yourself',
+    'website': 'build-it-yourself',
+    'app': 'build-it-yourself',
   };
-
-  let baseUrl = 'https://appsumo.com/software/';
-  if (categories && categories.length > 0) {
-    const firstCategory = categories[0].toLowerCase().trim();
-    const mapped = Object.entries(categoryMap).find(([key]) => firstCategory.includes(key));
-    if (mapped) baseUrl = `https://appsumo.com/software/${mapped[1]}/`;
-    else console.log(`⚠️ Category "${firstCategory}" not found, using default page`);
-  }
-
-  if (sortBy) return `${baseUrl}?sort=${sortBy}`;
-  return baseUrl;
-}
 
   let baseUrl = '';
 
