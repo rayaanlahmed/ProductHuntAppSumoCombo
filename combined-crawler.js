@@ -14,7 +14,7 @@ export async function crawlCombined(limit = 10, topic = null) {
   console.log("🧠 Starting combined crawl for:", cleanTopic || "Trending");
 
   try {
-    const perSourceLimit = Math.max(1, Math.floor(limit / 2));
+    const perSourceLimit = limit;
 
     const [productHuntResults, appSumoResults] = await Promise.allSettled([
       crawlProductHunt(perSourceLimit, cleanTopic),
