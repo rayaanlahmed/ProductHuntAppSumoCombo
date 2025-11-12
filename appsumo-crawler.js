@@ -269,7 +269,7 @@ function getCategoryUrl(categories, sortBy = null) {
     baseUrl = 'https://appsumo.com/software/';
   } else {
     // Try to match the first category to a known category URL
-    const firstCategory = categories[0].toLowerCase().trim();
+    const firstCategory = categories[0].toLowerCase().replace(/-/g, " ").trim();
 
     // First try exact match
     if (categoryMap[firstCategory]) {
