@@ -9,15 +9,51 @@ export async function crawlProductHunt(limit = 10, topic = null) {
 
   const keyword = topic ? topic.toLowerCase() : "";
 
-  const url = `https://api.producthunt.com/v1/posts?search[query]=${encodeURIComponent(
-    keyword
-  )}&per_page=${limit}`;
+  // ✅ GraphQL query instead of old REST endpoint
+  const query = `
+    query {
+      posts(order: RANKING, first: ${limit}) {
+        edges {
+          node {
+            id
+            name
+            tagline
+            description
+            votesCount
+            reviewsCount
+            reviewsRating
+            createdAt
+            website
+            url
+            makers {
+              name
+              username
+              profileImage
+            }
+            topics {
+              edges {
+                node {
+                  name
+                  slug
+                }
+              }
+            }
+            thumbnail {
+              url
+            }
+          }
+        }
+      }
+    }
+  `;
 
-  const response = await fetch(url, {
+  const response = await fetch("https://api.producthunt.com/v2/api/graphql", {
+    method: "POST",
     headers: {
+      "Content-Type": "application/json",
       Authorization: `Bearer ${process.env.PRODUCTHUNT_API_KEY}`,
-      Accept: "application/json",
     },
+    body: JSON.stringify({ query }),
   });
 
   if (!response.ok) {
@@ -26,28 +62,40 @@ export async function crawlProductHunt(limit = 10, topic = null) {
 
   const data = await response.json();
 
-  const posts = data?.posts || [];
-  if (!posts.length) {
-    console.warn(`⚠️ No posts found for "${keyword}", showing trending fallback.`);
+  if (data.errors) {
+    console.error("🚨 Product Hunt API error:", data.errors);
+    return [];
   }
 
-  const formatted = posts.map((p) => ({
+  const posts =
+    data?.data?.posts?.edges?.map((edge) => edge.node) || [];
+
+  // ✅ Keyword/topic filtering (e.g., “design tools”)
+  const filtered = keyword
+    ? posts.filter((p) => {
+        const text = `${p.name} ${p.tagline} ${p.description} ${p.topics?.edges
+          ?.map((t) => t.node.name)
+          .join(" ")}`.toLowerCase();
+        return text.includes(keyword);
+      })
+    : posts;
+
+  const formatted = filtered.map((p) => ({
     name: p.name,
     tagline: p.tagline,
-    votes: p.votes_count,
-    rating: p.reviews_rating || "N/A",
-    reviewsCount: p.reviews_count || 0,
+    votes: p.votesCount,
+    rating: p.reviewsRating || "N/A",
+    reviewsCount: p.reviewsCount || 0,
     founders:
-      p.user?.name ||
-      (p.makers && p.makers.length
+      p.makers?.length > 0
         ? p.makers.map((m) => m.name).join(", ")
-        : "Unknown"),
-    url: p.redirect_url || p.discussion_url || p.url,
-    homepage: p.redirect_url,
+        : "Unknown",
+    url: p.website || p.url,
+    homepage: p.website,
     description: p.description,
-    topics: p.topics?.map((t) => t.name).join(", "),
-    launchDate: p.day,
-    thumbnail: p.thumbnail?.image_url,
+    topics: p.topics?.edges?.map((t) => t.node.name).join(", ") || "",
+    launchDate: p.createdAt,
+    thumbnail: p.thumbnail?.url,
     source: "Product Hunt",
   }));
 
@@ -61,3 +109,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     .then((data) => console.log(JSON.stringify(data, null, 2)))
     .catch((err) => console.error(err));
 }
+
